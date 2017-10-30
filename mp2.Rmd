@@ -8,11 +8,45 @@ output: html_document
 
 ## Loading the data
 
-This project is so interesting and relevant to my life!
 
-```{r, include=FALSE}
+```{r include=TRUE, message=FALSE ,comment=NA, echo = FALSE}
 load("house_elections.rda")
 load("candidates.rda")
 load("committees.rda")
 load("contributions.rda")
+
+library(tidyverse)
+library(ggthemes)
+
+glimpse(committees)
+glimpse(candidates)
+
+glimpse(contributions)
+
+
+candidate_contributions <-
+  full_join(x = candidates, y = contributions, by = "cand_id")%>%
+  select(1:4, cand_office, transaction_amt, entity_type) %>%
+  filter(cand_election_yr == 2010) %>%
+  group_by(cand_office, entity_type) %>%
+  summarise(average_contribution = mean(transaction_amt, na.rm = TRUE)) %>%
+  filter(entity_type != "NA") %>%
+  arrange(desc(average_contribution))
+
+
+
+ggplot(candidate_contributions, mapping = aes(x = entity_type, y = average_contribution, color = cand_office)) +
+  geom_jitter(size = 6) +
+  labs(title = " Contributions to Campaigns in the Year 2010",
+       x = "Type", y = "Average Contribution (Millions,$) ") +
+  theme(plot.title = element_text(hjust = 0.5, size = 25), 
+        axis.text.x = element_text(size = 5, face = "bold"),
+        axis.text.y = element_text(angle = 45, vjust = 0.5, face = "bold"),
+        axis.title = element_text(size = 15)) +
+  theme_economist() +
+  scale_x_discrete(labels = c("NA ", "Candidate", "Cand Committee", "Committe", "Individual", "Org", "PAC", "Party Org")) +
+  scale_color_manual(name = "Candidates", labels = c("House", "President ", "Senate"), 
+                     values = c("green", "pink", "orange")) 
+
+
 ```
